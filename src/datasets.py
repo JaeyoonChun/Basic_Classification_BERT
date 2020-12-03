@@ -42,13 +42,12 @@ class BaseDataset(Dataset):
         for k, v in input.items():
             input[k] = torch.tensor(v)
         
-        return input['input_ids'], input['attention_mask'], input['token_type_ids'], input['label']
+        return input['input_ids'], input['attention_mask'], input['token_type_ids'], input['label'], text
 
     def __len__(self):
         return len(self.data)
 
 
 DATASET_LIST = {
-    'Classification': BaseDataset,
-    'Test': PredictDataset
+    'Classification': BaseDataset
 }
