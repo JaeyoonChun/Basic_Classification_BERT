@@ -63,7 +63,7 @@ def main():
     tokenizer = load_tokenizer(args)
 
     checkpoints = sorted([dir for dir in glob.glob(f'{args.save_model_dir}/*') if os.path.isdir(dir)])
-    if not args.eval_all_ckpts: checkpoints = checkpoints[-1]
+    if not args.eval_all_ckpts: checkpoints = checkpoints[-1:]
 
     results = {}
     eval_preds, eval_labels = [], []
