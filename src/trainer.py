@@ -119,7 +119,9 @@ class Trainer:
                     if self.args.save_steps > 0 and global_step % self.args.save_steps == 0:
                         if valid_loss < best_valid_loss:
                             best_valid_loss = valid_loss
-                            self.save_model(optimizer, best_valid_loss)
+                            self.save_model(optimizer, global_step, best=True)
+                        else:
+                            self.save_model(optimizer, global_step)
                                             
                 if 0 < self.args.max_steps < global_step:
                     epoch_iterator.close()
@@ -178,13 +180,18 @@ class Trainer:
 
         return results['loss'], results['acc']
 
-    def save_model(self, optimizer, loss):
+    def save_model(self, optimizer, steps, best=False):
+        if best: ckpt = 'ckpt-best'
+        else: ckpt =f'ckpt-{steps}'
+        ckpt = os.path.join(self.args.save_model_dir, ckpt)
+
         if not os.path.exists(self.args.save_model_dir):
             os.makedirs(self.args.save_model_dir)
+        if not os.path.exists(ckpt):
+            os.makedirs(ckpt)
         
         model_to_save = self.model.module if hasattr(self.model, 'module') else self.model
-        model_to_save.save_pretrained(self.args.save_model_dir)
+        model_to_save.save_pretrained(ckpt)
         
-        torch.save(self.args, os.path.join(self.args.save_model_dir, 'training_args.bin'))
-        torch.save(self.args, os.path.join(self.args.save_model_dir, 'training_args.bin'))
-        logger.info("Saving model checkpoint to %s", self.args.save_model_dir)
+        torch.save(self.args, os.path.join(ckpt, 'training_args.bin'))
+        logger.info(f"Saving model checkpoint to {ckpt}")

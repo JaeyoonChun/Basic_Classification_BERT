@@ -18,5 +18,6 @@
     "gradient_accumulation_steps": 1,
     "max_steps": 0,
     "max_grad_norm": 1.0,
-    "cuda": "0"
+    "cuda": "0",
+    "eval_all_ckpts": true
 }
