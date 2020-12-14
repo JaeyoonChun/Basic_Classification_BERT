@@ -16,15 +16,12 @@ def main(args):
     if args.train:
         trainer = Trainer(args, tokenizer)
         trainer.train()
-    elif args.predict:
-        pass
+
 if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
 
     parser.add_argument("--train", action="store_true", help="Whether to run training.")
-    parser.add_argument("--predict", action="store_true", help="Whether to run eval on the test set.")
-    parser.add_argument("--interactive", action="store_true", help="Whether to run eval on the test set.")
 
     args = parser.parse_args()
 
