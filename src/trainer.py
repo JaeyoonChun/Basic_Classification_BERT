@@ -2,6 +2,7 @@ import torch
 from torch.utils.data import DataLoader, RandomSampler, SequentialSampler
 from transformers import AdamW, get_linear_schedule_with_warmup
 from transformers import AutoModelForSequenceClassification, AutoTokenizer, AutoConfig
+from transformers.modeling_bert import BertLayerNorm
 
 from datasets import DATASET_LIST
 from utils import compute_metrics
@@ -23,6 +24,27 @@ class Trainer:
                                                 num_labels=self.args.num_labels, 
                                                 finetuning_task=args.task)
         self.model = AutoModelForSequenceClassification.from_pretrained(self.args.bert_type, config=self.config).to(self.device)
+
+        if self.args.init_popler:
+            # pooling layer
+            encoder_temp = getattr(self.model, "bert")
+            encoder_temp.pooler.dense.weight.data.normal_(mean=0.0, std=encoder_temp.config.initializer_range)
+            encoder_temp.pooler.dense.bias.data.zero_()
+            for p in encoder_temp.pooler.parameters():
+                p.requires_grad = True
+
+        if self.args.init_layers:
+            assert self.args.init_nums != 0
+            encoder_temp = getattr(self.model, "bert")
+            for layer in encoder_temp.encoder.layer[-self.args.init_nums:]:
+                for module in layer.modules():
+                    if isinstance(module, (torch.nn.Linear, torch.nn.Embedding)):
+                        module.weight.data.normal_(mean=0.0, std=encoder_temp.config.initializer_range)
+                    elif isinstance(module, BertLayerNorm):
+                        module.bias.data.zero_()
+                        module.weight.data.fill_(1.0)
+                    if isinstance(module, torch.nn.Linear) and module.bias is not None:
+                        module.bias.data.zero_()
 
     def train(self):
         train_dataset = DATASET_LIST[self.args.model_mode](self.args, self.tokenizer, "train")
