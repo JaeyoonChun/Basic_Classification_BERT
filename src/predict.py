@@ -6,7 +6,7 @@ from tqdm import tqdm, trange
 import numpy as np
 import torch
 from torch.utils.data import DataLoader, SequentialSampler
-from datasets_pre import DATASET_LIST
+from datasets import DATASET_LIST
 from transformers import AutoModelForSequenceClassification,  AutoTokenizer
 from collections import defaultdict
 from utils import init_logger, binary_accuracy, load_tokenizer, compute_metrics
@@ -56,7 +56,7 @@ def predict(args, model, tokenizer, device, test_dataloader):
 
 
 def main():
-    with open('config_pre.json', 'r', encoding='utf-8') as f:
+    with open('config.json', 'r', encoding='utf-8') as f:
         args = AttrDict(json.load(f))
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -71,7 +71,7 @@ def main():
         steps = ckpt.split('-')[-1]
         model = AutoModelForSequenceClassification.from_pretrained(ckpt).to(device)
 
-        test_dataset = DATASET_LIST['Test'](args, tokenizer, "test")
+        test_dataset = DATASET_LIST[args.model_mode](args, tokenizer, "test")
         test_dataloader = DataLoader(dataset=test_dataset, sampler=SequentialSampler(test_dataset), batch_size=args.eval_batch_size)
         
         all_preds, all_out_label_ids, texts = predict(args, model, tokenizer, device, test_dataloader)
@@ -81,7 +81,7 @@ def main():
         eval_labels.append(all_out_label_ids)
         results[steps] = compute_metrics(all_preds_argmax, all_out_label_ids)
 
-        result = [{"id": idx, "text": t[0], "label":an} for idx, (t, an) in enumerate(zip(texts, all_preds_argmax))]
+        result = [{"id": idx, "text": t[0], "label":test_dataset.answer2labels[an]} for idx, (t, an) in enumerate(zip(texts, all_preds_argmax))]
         result = {'annotations': result}
         with open(os.path.join(ckpt, 'results.json'), 'w', encoding='utf-8') as f:
             json.dump(result, f, ensure_ascii=False, indent='\t')
@@ -89,10 +89,10 @@ def main():
     with open(os.path.join(args.save_model_dir, 'eval_results.txt'), 'w', encoding='utf-8') as f:    
         for idx, key in enumerate(sorted(results.keys())):
             print(f"{key}: {str(results[key]['acc'])}")
-            print(confusion_matrix(eval_labels[idx], eval_preds[idx], [1, 0, 2, 3, 4]).tolist())
+            print(confusion_matrix(eval_labels[idx], eval_preds[idx]).tolist())
             print()
             f.write(f"{key}: {str(results[key]['acc'])}\n")
-            f.write(f"{confusion_matrix(eval_labels[idx], eval_preds[idx], [1, 0, 2, 3, 4]).tolist()}\n\n")
+            f.write(f"{confusion_matrix(eval_labels[idx], eval_preds[idx]).tolist()}\n\n")
 
 if __name__ == '__main__':    
     main()
