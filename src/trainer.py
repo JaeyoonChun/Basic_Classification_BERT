@@ -25,7 +25,7 @@ class Trainer:
                                                 finetuning_task=args.task)
         self.model = AutoModelForSequenceClassification.from_pretrained(self.args.bert_type, config=self.config).to(self.device)
 
-        if self.args.init_popler:
+        if self.args.init_pooler:
             # pooling layer
             encoder_temp = getattr(self.model, "bert")
             encoder_temp.pooler.dense.weight.data.normal_(mean=0.0, std=encoder_temp.config.initializer_range)
