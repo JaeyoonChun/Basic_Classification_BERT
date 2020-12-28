@@ -4,8 +4,9 @@ from utils import init_logger, set_seeds, load_tokenizer
 import os
 import argparse
 from attrdict import AttrDict
+import json
 
-def main(args):
+def main(opt):
     with open('config.json', 'r', encoding='utf-8') as f:
         args = AttrDict(json.load(f))
     os.environ['CUDA_VISIBLE_DEVICES'] = args.cuda
@@ -13,7 +14,7 @@ def main(args):
     set_seeds()
     tokenizer = load_tokenizer(args)
     
-    if args.train:
+    if opt.train:
         trainer = Trainer(args, tokenizer)
         trainer.train()
 
