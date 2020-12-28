@@ -22,5 +22,6 @@
     "eval_all_ckpts": true,
     "init_pooler": true,
     "init_layers": true,
-    "init_nums": 4
+    "init_nums": 4,
+    "num_labels": 4
 }
