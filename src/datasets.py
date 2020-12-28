@@ -14,11 +14,20 @@ class BaseDataset(Dataset):
         with open(data_path, 'r', encoding='utf-8') as f:
             self.data = json.load(f)
         
+        label_path = os.path.join(args.data_dir, 'label.json')
+        with open(label_path, 'r', encoding='utf-8') as f:
+            labels = json.load(f)
+        
+        self.labels2answer = {lab:idx for idx, lab in enumerate(labels)}
+        self.answer2labels = {idx:lab for idx, lab in enumerate(labels)}
+
+        for idx, elem in enumerate(self.data):
+            self.data[idx]['label'] = self.labels2answer[elem['label']]
    
     def __getitem__(self, idx):
         # 데이터 형식에 따라 바꾸기
         text = self.data[idx]['text']
-        sentiment = self.data[idx]['sentiment']
+        label = self.data[idx]['label']
 
         encoded = self.tokenizer.encode_plus(
             text,
@@ -36,7 +45,7 @@ class BaseDataset(Dataset):
             'input_ids':input_ids,
             'attention_mask':attention_mask,
             'token_type_ids':token_type_ids,
-            'label': sentiment
+            'label': label
         }
 
         for k, v in input.items():
