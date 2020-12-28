@@ -95,6 +95,7 @@ class Trainer:
             for step, batch in enumerate(epoch_iterator):
                 self.model.train()
                 optimizer.zero_grad()
+                batch = batch[:-1]
                 batch = tuple(t.to(self.device) for t in batch)
                 inputs = {
                     'input_ids': batch[0],
@@ -165,6 +166,7 @@ class Trainer:
         self.model.eval()
 
         for batch in tqdm(eval_dataloader, desc="Evaluating"):
+            batch = batch[:-1]
             batch = tuple(t.to(self.device) for t in batch)
             with torch.no_grad():
                 inputs = {
